@@ -6,11 +6,9 @@ import 'firebase/auth'
 
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 import appConfig from './appConfig.json';
-
-console.log(appConfig.firebaseConfig);
 
 firebase.initializeApp(appConfig.firebaseConfig);
 
@@ -24,7 +22,7 @@ function ChatMessage(props) {
 
   return(
     <div className={`message ${messageClass}`}>
-      <img src={photoURL} />
+      <img src={photoURL} alt='User Profile'/>
       <p>{text}</p>
     </div>
   )
@@ -37,6 +35,8 @@ function ChatRoom() {
 
   const [messages] = useCollectionData(query, {idField: 'id'});
   const [formValue, setFormValue] = useState('');
+
+  const scrollDown = useRef();
 
   const sendMessage = async(e) => {
 
@@ -52,20 +52,32 @@ function ChatRoom() {
     });
 
     setFormValue('');
+
+    scrollDown.current.scrollIntoView({ behavior: 'smooth'});
   }
+
+  useEffect(() => {
+    scrollDown.current.scrollIntoView({ behavior: 'smooth'});
+  });
 
   return(
     <>
-    <SignOut />
-      <div>
-        {messages && messages.map(msgs => <ChatMessage key={msgs.id} message={msgs} />)}
-      </div>
-      <form onSubmit={sendMessage}>
-        <input value={formValue} onChange={(e) => setFormValue(e.target.value)} />
+    <main>
 
-        <button type='submit'>Send</button>
-      </form>
-    </>
+      {messages && messages.map(msg => <ChatMessage key={msg.id} message={msg} />)}
+
+      <span ref={scrollDown}></span>
+
+    </main>
+
+    <form onSubmit={sendMessage}>
+
+      <input value={formValue} onChange={(e) => setFormValue(e.target.value)} placeholder="say something" />
+
+      <button type="submit" disabled={!formValue}>Send</button>
+
+    </form>
+  </>
   );
 }
 
@@ -94,13 +106,7 @@ function App() {
   return (
     <div className="App">
       <header>
-      {/* The core Firebase JS SDK is always required and must be listed first */}
-<script src="https://www.gstatic.com/firebasejs/8.2.10/firebase-app.js"></script>
-
-          {/* TODO: Add SDKs for Firebase products that you want to use
-     https://firebase.google.com/docs/web/setup#available-libraries */}
-<script src="https://www.gstatic.com/firebasejs/8.2.10/firebase-analytics.js"></script>
-
+        <SignOut />
       </header>
 
       <section>
